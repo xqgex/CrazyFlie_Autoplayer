@@ -1,0 +1,11 @@
+CMakeFiles/
+*.swp
+*.cbt
+cmake-build-debug/
+"mpatches\r"
+output
+cmake_install.cmake
+.idea/
+CMakeCache.txt
+PathFinder
+Makefile
