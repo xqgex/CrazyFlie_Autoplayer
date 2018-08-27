@@ -38,8 +38,12 @@ void print_3d_mat(vector<vector<vector<Point_2>>> mat);
 
 void print_vector(vector<int> vec);
 
+void print_vector(vector<double> vec);
+
 void print_path(vector<Point_2> path);
 
 void print_point(Point_2 p);
+
+vector<Point_2> plan_path(vector<Point_2> points, const Polygon_2 &robot, vector<Polygon_2> &obstacles);
 
 #endif //PATHFINDER_OPTIMALPATH_H

@@ -13,6 +13,12 @@
 #include <CGAL/Boolean_set_operations_2/Gps_polygon_validation.h>
 #include <vector>
 #include <list>
+#include <sys/socket.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <boost/timer.hpp>
+#include <unistd.h>
+
 
 //
 // Created by gal on 16/08/18.
@@ -167,6 +173,39 @@ vector<vector<double>> create_graph(vector<vector<vector<Point_2>>> roads)
     return roads_lengths;
 }
 
+
+vector<Point_2> plan_path(vector<Point_2> points, const Polygon_2 &robot, vector<Polygon_2> &obstacles)
+{
+    boost::timer timer;
+    vector < vector < vector < Point_2 >> > roads = RoadsPlanner(points, robot, obstacles);
+    auto secs = timer.elapsed();
+    cout << "RoadsPlanner finished in " << secs << " secs" << endl;
+    timer.restart();
+
+    vector <vector<double>> graph = create_graph(roads);
+    secs = timer.elapsed();
+    cout << "create_graph finished in " << secs << " secs" << endl;
+    timer.restart();
+
+
+    vector<int> opt_path_indexes = TSPPlanner(graph);
+    secs = timer.elapsed();
+    cout << "TSPPlanner finished in " << secs << " secs" << endl;
+    timer.restart();
+
+    vector <Point_2> opt_path;
+    opt_path.push_back(points.at(0));
+
+    //todo muad le pooraanut
+    for (int i = 0; i < opt_path_indexes.size() - 1; i++)
+    {
+        vector<Point_2> next_seq = roads.at(opt_path_indexes.at(i)).at(opt_path_indexes.at(i + 1));
+        opt_path.insert(opt_path.end(), next_seq.begin() + 1, next_seq.end());
+    }
+
+    return opt_path;
+}
+
 void print_2d_mat(vector<vector<double>> mat)
 {
     cout << "   ";
@@ -205,6 +244,15 @@ void print_3d_mat(vector<vector<vector<Point_2>>> mat)
 }
 
 void print_vector(vector<int> vec)
+{
+    for(int x : vec)
+    {
+        cout << x << " ";
+    }
+    cout << endl;
+}
+
+void print_vector(vector<double> vec)
 {
     for(int x : vec)
     {
