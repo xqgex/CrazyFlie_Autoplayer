@@ -1,6 +1,6 @@
 CMakeFiles/
 *.swp
-*.cbt
+*.cbp
 cmake-build-debug/
 "mpatches\r"
 output

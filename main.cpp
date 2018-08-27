@@ -72,6 +72,53 @@ std::string path2str(vector <Point_2> path)
     ss << endl;
     return ss.str();
 }
+
+void handle_set_world(std::string req)
+{
+    //todo
+}
+
+void handle_set_drone_size(std::string req)
+{
+    //todo
+}
+
+void handle_find_path(std::string req)
+{
+    //todo
+}
+
+void parse_request(std::string req)
+{
+    std::string delimiter = ">=";
+    size_t pos = req.find(delimiter); //todo if delimiter is not found
+    std::string req_type = req.substr(0, pos);
+
+    if(req_type == "set_world")
+    {
+        req.erase(0, pos + 1);
+        handle_set_world(req);
+        return;
+    }
+    if(req_type == "set_drone_size")
+    {
+        req.erase(0, pos + 1);
+        handle_set_drone_size(req);
+        return;
+    }
+
+    if(req_type == "find_path")
+    {
+        req.erase(0, pos + 1);
+        handle_find_path(req);
+        return;
+    }
+    else {
+        //todo illegal request
+    }
+}
+
+
 int main(int argc, char *argv[])
 {
 
@@ -124,13 +171,21 @@ int main(int argc, char *argv[])
 
     int param_read = read(new_socket , buffer, 1024);
 
+    cout << "got response" << endl;
+    // another read for skipping the type of the read
+    send(new_socket , "1" , 2 , 0 );
+
+    param_read = read(new_socket , buffer, 1024);
+
+    cout << "got response" << endl;
     ofstream myfile;
     myfile.open("temp_robot.txt");
     myfile << buffer; //check
     myfile.close();
 
 
-    //printf("%s\n",buffer );
+    cout << "robot" << endl;
+    printf("%s\n",buffer );
     send(new_socket , "1" , 2 , 0 );
 
 
@@ -140,8 +195,9 @@ int main(int argc, char *argv[])
     myfile.close();
 
 
+    cout << "got response" << endl;
 
-    //printf("%s\n",buffer );
+    printf("%s\n",buffer );
     send(new_socket , "1" , 2 , 0 );
 
     param_read = read(new_socket , buffer, 1024);
@@ -149,12 +205,17 @@ int main(int argc, char *argv[])
     myfile << buffer; //check
     myfile.close();
 
-    //printf("%s\n",buffer );
+    /**
+    printf("%s\n",buffer );
     send(new_socket , "1" , 2 , 0 );
 
+     */
+
+    cout << "got response" << endl;
     ifstream inputRobotFile("temp_robot.txt"), inputSitesFile("temp_sites.txt"), inputObstaclesFile("temp_obs.txt");
 
 
+    cout << "here" << endl;
 
 
 
@@ -190,20 +251,25 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    cout << "here2" << endl;
+
     auto startPoint = loadPoint_2(inputRobotFile);
     auto robot = loadPolygon(inputRobotFile);
     inputRobotFile.close();
 
+    cout << "here3" << endl;
+
     vector <Point_2> points;
     points.push_back(startPoint);
     vector <Point_2> sites = loadSites(inputSitesFile, points);
-    //cout << "finished loadSites" << endl;
+    cout << "finished loadSites" << endl;
     inputSitesFile.close();
 
-    //cout << "start loadPolygons" << endl;
+    cout << "here" << endl;
+    cout << "start loadPolygons" << endl;
     auto obstacles = loadPolygons(inputObstaclesFile);
     inputObstaclesFile.close();
-    //cout << "finished loadPolygons" << endl;
+    cout << "finished loadPolygons" << endl;
 
     try {
         boost::timer timer;
