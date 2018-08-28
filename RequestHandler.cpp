@@ -9,17 +9,53 @@
 #include "Path.h"
 #include "PathPlanner.h"
 
+#define DEFAULT_WORLD_SIZE_X 10.0
+#define DEFAULT_WORLD_SIZE_Y 10.0
 
 RequestHandler::RequestHandler() {
     world_size_x = 10.0; // default world size
     world_size_y = 10.0;
-    drone_size = 1.0; //default drone size
+    drone_size = 0.1; //default drone size
+    //vector<Polygon_2> bounding_box;
+    set_world_size(DEFAULT_WORLD_SIZE_X, DEFAULT_WORLD_SIZE_Y);
 }
 
 void RequestHandler::set_world_size(double x, double y)
 {
     world_size_y = y;
     world_size_x = x;
+    bounding_box = vector<Polygon_2>();
+
+    Polygon_2 poly;
+    poly.push_back(Point_2(0,0));
+    poly.push_back(Point_2(0,y));
+    poly.push_back(Point_2(-0.1, 0));
+    bounding_box.push_back(poly);
+
+    poly = Polygon_2();
+    poly.push_back(Point_2(x,0));
+    poly.push_back(Point_2(0,0));
+    poly.push_back(Point_2(0,-0.1));
+    bounding_box.push_back(poly);
+
+    poly = Polygon_2();
+    poly.push_back(Point_2(x,y));
+    poly.push_back(Point_2(x,0));
+    poly.push_back(Point_2(x+0.1,0));
+    bounding_box.push_back(poly);
+
+    poly = Polygon_2();
+    poly.push_back(Point_2(0,y));
+    poly.push_back(Point_2(x,y));
+    poly.push_back(Point_2(0,y+0.1));
+    bounding_box.push_back(poly);
+
+    /*
+    CGAL::Orientation orient = ret.orientation();
+    if (CGAL::CLOCKWISE == orient)
+        ret.reverse_orientation();
+    return ret;
+     */
 }
 
 void RequestHandler::set_drone_size(double x)
@@ -133,14 +169,26 @@ string RequestHandler::handle_find_path(std::string req)
         sites.push_back(Point_2(sites_vec.at(2*i), sites_vec.at(2*i+1)));
     }
 
-
     //cout << path2str(sites) << endl;
     vector<Polygon_2> drones;
+    vector<double> temp_obs_drones;
+    if(req_params.size()>=3)
+    {
+        temp_obs_drones = split_into_doubles(req_params.at(2), ' ');
+        for (int i = 0; i < temp_obs_drones.size() / 2; i++)
+        {
+            drones.push_back(position_to_square(temp_obs_drones.at(2 * i), temp_obs_drones.at(2 * i + 1)));
+        }
+
+    }
+    /*
     vector<double> temp_obs_drones = split_into_doubles(req_params.at(2), ' ');
+    cout << "here3" << endl;
     for (int i = 0; i < temp_obs_drones.size() / 2; i++)
     {
         drones.push_back(position_to_square(temp_obs_drones.at(2 * i), temp_obs_drones.at(2 * i + 1)));
     }
+     */
 
     //print_obs(drones);
 

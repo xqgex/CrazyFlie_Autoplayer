@@ -113,7 +113,6 @@ vector<vector<vector<Point_2>>> RoadsPlanner(vector<Point_2> points, const Polyg
 
     double length = points.size();
 
-
     //initialize roads
 
     for(int i=0; i<length; i++)
@@ -126,7 +125,6 @@ vector<vector<vector<Point_2>>> RoadsPlanner(vector<Point_2> points, const Polyg
         }
         roads.push_back(temp);
     }
-
 
     for(int i=0; i<length; i++)
     {
@@ -177,6 +175,7 @@ vector<vector<double>> create_graph(vector<vector<vector<Point_2>>> roads)
 vector<Point_2> plan_path(vector<Point_2> points, const Polygon_2 &robot, vector<Polygon_2> &obstacles)
 {
     boost::timer timer;
+    cout << "started roads planner" << endl;
     vector < vector < vector < Point_2 >> > roads = RoadsPlanner(points, robot, obstacles);
     auto secs = timer.elapsed();
     cout << "RoadsPlanner finished in " << secs << " secs" << endl;

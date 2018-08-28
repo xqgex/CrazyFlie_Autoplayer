@@ -22,6 +22,8 @@ public:
     double world_size_y;
     double drone_size;
 
+    vector<Polygon_2> bounding_box;
+
     string handle(string request);
 
 

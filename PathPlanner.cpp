@@ -306,6 +306,7 @@ void PathPlanner::setFacesPath(Arrangement_2& arr) // run BFS from start_face to
         this->addFacesToQueue(arr, pointNode);
         queue.erase(pointNode);
     }
+    cout << "no path found!" << endl;
     throw "no path found!";
 }
 
