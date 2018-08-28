@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#define PORT 8080
+#define PORT 20000
 #include <string>
 #include <sstream>
 #include <vector>
@@ -33,8 +33,7 @@ using namespace std;
 
 Server::Server()
 {
-    int addrlen = sizeof(address);
-
+    addrlen = sizeof(address);
     cout << "socket is ready for action!" << endl;
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
@@ -68,21 +67,30 @@ Server::Server()
 
 void Server::waitForConnection()
 {
-    while (true) {
-        if ((new_socket = accept(server_fd, (struct sockaddr *) &address,
-                                 (socklen_t *) &addrlen)) < 0) {
-            perror("accept");
-            exit(EXIT_FAILURE);
-        }
+    if ((new_socket = accept(server_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen)) < 0)
+    {
+        perror("accept");
+        exit(EXIT_FAILURE);
+        // return false;
     }
+
+    cout << "waiting..." << endl; //todo
+
 }
 
 string Server::readRequest()
 {
     char buffer[1024] = {0};
     int param_read = read(new_socket, buffer, 1024);
+    //cout << param_read << endl;
     return buffer;
 }
+
+void Server::send(string data)
+{
+    ::send(new_socket, data.c_str(), data.length(), 0); // todo check that works
+}
+
 
 
 

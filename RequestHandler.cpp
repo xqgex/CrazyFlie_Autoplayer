@@ -11,9 +11,9 @@
 
 
 RequestHandler::RequestHandler() {
-    world_size_x = 10.0;
+    world_size_x = 10.0; // default world size
     world_size_y = 10.0;
-    drone_size = 1.0;
+    drone_size = 1.0; //default drone size
 }
 
 void RequestHandler::set_world_size(double x, double y)
@@ -34,9 +34,9 @@ std::string path2str(vector <Point_2> path)
     std::string str = "";
     for(Point_2 point: path)
     {
-        ss << point.x().to_double() << " " << point.y().to_double() << "  ";
+        ss << point.x().to_double() << " " << point.y().to_double() << " ";
     }
-    ss << endl;
+    //ss << endl;
     return ss.str();
 }
 
@@ -176,8 +176,9 @@ string RequestHandler::handle(std::string req)
     }
     else
     {
+        //cout << "*";
         cout << "not good" << endl;
-        return "not good";
+        return "";
         //todo illegal request
     }
 }

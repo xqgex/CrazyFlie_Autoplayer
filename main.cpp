@@ -5,6 +5,8 @@
 #include <boost/timer.hpp>
 #include "CGAL_defines.h"
 
+#include "Server.h"
+#include "RequestHandler.h"
 #include "OptimalPath.h"
 #include "Path.h"
 #include "PathPlanner.h"
@@ -22,10 +24,13 @@
 #include <vector>
 #include <iterator>
 
+using namespace std;
+
+/*
 static double world_size_x = 10;
 static double world_size_y = 10;
 static double drone_size = 1;
-using namespace std;
+
 
 Point_2 loadPoint_2(std::ifstream &is) {
     Kernel::FT x, y;
@@ -225,9 +230,66 @@ string handle_request(std::string req)
         //todo illegal request
     }
 }
+ */
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
+    Server server = Server();
+    while(true)
+    {
+        RequestHandler handler = RequestHandler();
+        //try
+        {
+            server.waitForConnection();
+
+            while(true)
+            {
+                string request = server.readRequest();
+                if(request.length() == 0)
+                {
+                    break;
+                }
+                string response = handler.handle(request);
+                server.send(response);
+            }
+        }
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+{
 
     //handle_request("find_path$0 0$2 2 4 4 8 8$6 6");
     //sleep(3);
@@ -292,7 +354,7 @@ int main(int argc, char *argv[]) {
 
 
 
-    /**
+
 
     sleep(10);
 
