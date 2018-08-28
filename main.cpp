@@ -232,9 +232,30 @@ string handle_request(std::string req)
 }
  */
 
+void SkiTester1()
+{
+
+    RequestHandler handler = RequestHandler();
+    Polygon_2 robot = handler.position_to_square(0.0, 0.0);
+
+    vector<Point_2> gates;
+    gates.push_back(Point_2(2,3));
+    gates.push_back(Point_2(3,2));
+    gates.push_back(Point_2(17,29));
+    gates.push_back(Point_2(18,28));
+    gates.push_back(Point_2(27,3));
+    gates.push_back(Point_2(26,4));
+
+    Point_2 start_pos(0.0,0.0);
+
+    vector<Point_2> ski_path = plan_ski_path(gates, robot,  1 ,start_pos);
+
+}
+
 
 int main(int argc, char *argv[])
 {
+    //SkiTester1();
     Server server = Server();
     while(true)
     {
@@ -257,6 +278,8 @@ int main(int argc, char *argv[])
 
     }
 }
+
+
 
 
 

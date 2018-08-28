@@ -20,6 +20,17 @@
 #include <vector>
 #include <list>
 
+
+class GatePoint
+{
+public:
+    explicit GatePoint();
+
+    GatePoint(Point_2 ent, Point_2 exi);
+    Point_2 entrance;
+    Point_2 exit;
+
+};
 vector<Point_2> findPath(const Point_2 &start,
                          const Point_2 &end,
                          const Polygon_2 &robot,
@@ -45,5 +56,7 @@ void print_path(vector<Point_2> path);
 void print_point(Point_2 p);
 
 vector<Point_2> plan_path(vector<Point_2> points, const Polygon_2 &robot, vector<Polygon_2> &obstacles);
+
+vector<Point_2> plan_ski_path(vector<Point_2> gates, const Polygon_2 &robot, double dist_from_gates, Point_2 start_pos);
 
 #endif //PATHFINDER_OPTIMALPATH_H

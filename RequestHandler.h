@@ -26,14 +26,16 @@ public:
 
     string handle(string request);
 
+    Polygon_2 position_to_square(double x, double y);
 
 private:
     void set_world_size(double x, double y);
     void set_drone_size(double x);
     void handle_set_drone_size(std::string req);
     void handle_set_world(std::string req);
-    Polygon_2 position_to_square(double x, double y);
+    //Polygon_2 position_to_square(double x, double y);
     string handle_find_path(std::string req);
+    string handle_find_ski_path(std::string req);
 };
 
 
