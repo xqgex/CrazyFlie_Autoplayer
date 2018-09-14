@@ -91,10 +91,3 @@ void Server::send(string data)
 {
     ::send(new_socket, data.c_str(), data.length(), 0); // todo check that works
 }
-
-
-
-
-
-
-
