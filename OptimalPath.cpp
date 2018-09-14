@@ -1,6 +1,4 @@
-//
-// Created by yoni on 20/08/18.
-//
+#include "OptimalPath.h"
 
 #include "CGAL_defines.h"
 #include <CGAL/Origin.h>
@@ -20,20 +18,19 @@
 #include <unistd.h>
 
 
-//
-// Created by gal on 16/08/18.
-//
 #include "OptimalPath.h"
 #include "PathPlanner.h"
 
 using CGAL::Bbox_2;
 using std::vector;
 using namespace std;
-//typedef typename CGAL::Arrangement_2<Traits_2> Arrangement_2;
-//typedef typename CGAL::Arr_landmarks_point_location<Arrangement_2> Point_location;
 
+GatePoint::GatePoint(Point_2 ent, Point_2 exi)
+{
+       entrance = ent;
+       exit = exi;
+}
 
-//todo
 
 double pointsDistance(Point_2 a_point, Point_2 b_point)
 {
@@ -46,6 +43,10 @@ double pointsDistance(Point_2 a_point, Point_2 b_point)
 
 double path_length(vector<Point_2> path)
 {
+    if(path.size() == 0)
+    {
+        return 0.0;
+    }
     double length = 0;
     Point_2 temp = path.at(0);
     for(auto point: path)
@@ -95,7 +96,6 @@ vector<int> TSPPlanner(vector<vector<double>> graph)
 
         if(path_length<opt_path_length)
         {
-            //todo check
             opt_path_length = path_length;
             opt_path = temp_sites;
         }
@@ -141,6 +141,172 @@ vector<vector<vector<Point_2>>> RoadsPlanner(vector<Point_2> points, const Polyg
 }
 
 
+vector<vector<vector<Point_2>>> SkiRoadsPlanner(vector<GatePoint> points, const Polygon_2 &robot, vector<Polygon_2> &obstacles)
+{
+    vector<vector<vector<Point_2>>> roads;
+
+    double length = points.size();
+
+    //initialize roads
+
+    for(int i=0; i<length; i++)
+    {
+        vector<vector<Point_2>> temp;
+        for(int j=0; j<length; j++)
+        {
+            vector<Point_2> temp_j;
+            temp.push_back(temp_j);
+        }
+        roads.push_back(temp);
+    }
+
+    for(int i=0; i<length; i++)
+    {
+        for(int j=0; j<length; j++)
+        {
+            //todo check
+            if(j==i)
+            {
+                if(j==length-1)
+                {
+                    break;
+                }
+                j++;
+            }
+            vector<Point_2> path_ij(findPath(points.at(i).exit, points.at(j).entrance, robot, obstacles)); //using pathplanner - between point i and point j
+            roads.at(i).at(j) = path_ij;
+        }
+    }
+    return roads;
+}
+
+
+vector<vector<double>> create_ski_graph(vector<vector<vector<Point_2>>> roads)
+{
+
+    vector<vector<double>> roads_lengths;
+    // initialize graph
+    for(int i=0; i<roads.size(); i++)
+    {
+        vector<double> temp;
+        for(int j=0; j<roads.size(); j++)
+        {
+            temp.push_back(0.0);
+        }
+        roads_lengths.push_back(temp);
+    }
+
+
+    for(int i=0; i<roads.size(); i++)
+    {
+        for(int j=0; j<roads.size(); j++)
+        {
+            double path_ij_length = path_length(roads.at(i).at(j));
+            roads_lengths.at(i).at(j) = path_ij_length;
+        }
+    }
+
+    return roads_lengths;
+}
+
+
+vector<GatePoint> SkiInitSites(vector<Point_2> gates, double dist_from_gate, Point_2 start_pos)
+{
+    vector<GatePoint> gate_points;
+    gate_points.push_back(GatePoint(start_pos,start_pos));
+    for(int i=0; i<gates.size()/2; i++)
+    {
+        Point_2 a = gates.at(2*i);
+        Point_2 b = gates.at(2*i+1);
+        double dist = CGAL::squared_distance(a,b).to_double();
+        Vector_2 vec(a,b);
+        Point_2 middle = a + (vec/2);
+
+        Vector_2 perp =vec.perpendicular(CGAL::CLOCKWISE);
+        perp = (perp/dist)*dist_from_gate;
+        Point_2 entrance = middle + perp;
+
+        perp =vec.perpendicular(CGAL::COUNTERCLOCKWISE);
+        perp = (perp/dist)*dist_from_gate;
+        Point_2 exit = middle + perp;
+
+        gate_points.push_back(GatePoint(entrance,exit));
+    }
+
+    return gate_points;
+}
+
+
+vector<Polygon_2> SkiInitGates(vector<Point_2> gates)
+{
+    double width = 0.0001;
+    vector<Polygon_2> closed_gates;
+    for(int i=0; i<gates.size()/2; i++)
+    {
+        Polygon_2 gate;
+        Point_2 a = gates.at(2*i);
+        Point_2 b = gates.at(2*i+1);
+        double dist = CGAL::squared_distance(a,b).to_double();
+        Vector_2 vec(a,b);
+
+        Vector_2 perp =vec.perpendicular(CGAL::CLOCKWISE);
+        perp = (perp/dist)*width;
+        gate.push_back(a + perp);
+        gate.push_back(b + perp);
+
+        perp =vec.perpendicular(CGAL::COUNTERCLOCKWISE);
+        perp = (perp/dist)*width;
+        gate.push_back(b + perp);
+        gate.push_back(a + perp);
+
+        closed_gates.push_back(gate);
+    }
+
+    return closed_gates;
+}
+
+vector<Point_2> plan_ski_path(vector<Point_2> gates, const Polygon_2 &robot, double dist_from_gates, Point_2 start_pos)
+{
+    boost::timer timer;
+
+    vector<GatePoint> sites = SkiInitSites(gates, dist_from_gates, start_pos);
+    vector<Polygon_2> closed_gates = SkiInitGates(gates);
+
+    cout << "started SkiRoadsPlanner" << endl;
+    // remember that the first site in sites should be the starting gate - which will be a GatePoint
+    vector < vector < vector < Point_2 >> > ski_roads = SkiRoadsPlanner(sites, robot, closed_gates);
+    auto secs = timer.elapsed();
+    cout << "SkiRoadsPlanner finished in " << secs << " secs" << endl;
+    timer.restart();
+
+    cout << "started create_graph" << endl;
+    vector <vector<double>> graph = create_graph(ski_roads);
+    secs = timer.elapsed();
+    cout << "create_graph finished in " << secs << " secs" << endl;
+    timer.restart();
+
+
+    vector<int> opt_path_indexes = TSPPlanner(graph);
+    secs = timer.elapsed();
+    cout << "TSPPlanner finished in " << secs << " secs" << endl;
+    timer.restart();
+
+    vector <Point_2> opt_path;
+    opt_path.push_back(start_pos);
+
+    for (int i = 0; i < opt_path_indexes.size() - 1; i++)
+    {
+        vector<Point_2> next_seq = ski_roads.at(opt_path_indexes.at(i)).at(opt_path_indexes.at(i + 1));
+        next_seq.push_back(  (sites.at(opt_path_indexes.at(i+1))).exit ); //todo very risky
+        opt_path.insert(opt_path.end(), next_seq.begin() + 1, next_seq.end());
+    }
+
+    print_path(opt_path);
+    return opt_path;
+}
+
+
+
 vector<vector<double>> create_graph(vector<vector<vector<Point_2>>> roads)
 {
 
@@ -159,7 +325,7 @@ vector<vector<double>> create_graph(vector<vector<vector<Point_2>>> roads)
 
     for(int i=0; i<roads.size(); i++)
     {
-        for(int j=i+1; j<roads.size(); j++)
+        for(int j=0; j<roads.size(); j++)
         {
             double path_ij_length = path_length(roads.at(i).at(j));
             roads_lengths.at(i).at(j) = path_ij_length;
@@ -176,7 +342,7 @@ vector<Point_2> plan_path(vector<Point_2> points, const Polygon_2 &robot, vector
 {
     boost::timer timer;
     cout << "started roads planner" << endl;
-    vector < vector < vector < Point_2 >> > roads = RoadsPlanner(points, robot, obstacles);
+    vector<vector<vector<Point_2>>> roads = RoadsPlanner(points, robot, obstacles);
     auto secs = timer.elapsed();
     cout << "RoadsPlanner finished in " << secs << " secs" << endl;
     timer.restart();
@@ -195,7 +361,6 @@ vector<Point_2> plan_path(vector<Point_2> points, const Polygon_2 &robot, vector
     vector <Point_2> opt_path;
     opt_path.push_back(points.at(0));
 
-    //todo muad le pooraanut
     for (int i = 0; i < opt_path_indexes.size() - 1; i++)
     {
         vector<Point_2> next_seq = roads.at(opt_path_indexes.at(i)).at(opt_path_indexes.at(i + 1));
@@ -274,32 +439,3 @@ void print_path(vector<Point_2> path)
     cout << endl;
 }
 
-
-
-//todo
-/*
-vector<Point_2> naive_path_optimization(vector<Point_2> oldpath)
-{
-    vector<Point_2> path(oldpath);
-    for(int i =0; i<path.size()-1; i++)
-    {
-        int best = -1;
-        for(int j = i+2; j<path.size()-1; j++) // size()-1 ????? check
-        {
-            if (legal(i,j))
-            {
-                best = j;
-            }
-        }
-        if(best != -1)
-        {
-            path.erase(path.begin() + i +1, path.begin() + best);
-        }
-    }
-
-    return path;
-
-}
-
-
- */
