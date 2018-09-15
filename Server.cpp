@@ -82,7 +82,6 @@ string Server::readRequest()
 {
     char buffer[1024] = {0};
     int param_read = read(new_socket, buffer, 1024);
-    //cout << param_read << endl;
     cout << buffer << endl;
     return buffer;
 }
