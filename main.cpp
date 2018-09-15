@@ -26,23 +26,23 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
+int main(int argc, char *argv[]) 
 {
-    Server server = Server();
+    Server server = Server(); //create a server
     while(true)
     {
-        RequestHandler handler = RequestHandler();        
-        server.waitForConnection();
+        RequestHandler handler = RequestHandler(); //create request handler        
+        server.waitForConnection(); //wait for connection
 
         while(true)
         {
-            string request = server.readRequest();
+            string request = server.readRequest(); //wait for command
             if(request.length() == 0)
             {
                 break;
             }
-            string response = handler.handle(request);
-            server.send(response);
+            string response = handler.handle(request); //handle command
+            server.send(response); //send response
         } 
     }
 }

@@ -16,7 +16,6 @@ RequestHandler::RequestHandler() {
     world_size_x = 10.0; // default world size
     world_size_y = 10.0;
     drone_size = 0.1; //default drone size
-    //vector<Polygon_2> bounding_box;
     set_world_size(DEFAULT_WORLD_SIZE_X, DEFAULT_WORLD_SIZE_Y);
 }
 
@@ -50,12 +49,6 @@ void RequestHandler::set_world_size(double x, double y)
     poly.push_back(Point_2(0,y+0.1));
     bounding_box.push_back(poly);
 
-    /*
-    CGAL::Orientation orient = ret.orientation();
-    if (CGAL::CLOCKWISE == orient)
-        ret.reverse_orientation();
-    return ret;
-     */
 }
 
 void RequestHandler::set_drone_size(double x)
@@ -72,7 +65,6 @@ std::string path2str(vector <Point_2> path)
     {
         ss << point.x().to_double() << " " << point.y().to_double() << " ";
     }
-    //ss << endl;
     return ss.str();
 }
 
@@ -167,13 +159,12 @@ void print_obs(vector<Polygon_2> polys)
 
 Polygon_2 RequestHandler::position_to_square(double x, double y)
 {
-    //todo tofix
     Polygon_2 ret;
     ret.push_back(Point_2(x-drone_size/2, y-drone_size/2));
     ret.push_back(Point_2(x+drone_size/2, y-drone_size/2));
     ret.push_back(Point_2(x+drone_size/2, y+drone_size/2));
     ret.push_back(Point_2(x-drone_size/2, y+drone_size/2));
-    //return ret;
+
     CGAL::Orientation orient = ret.orientation();
     if (CGAL::CLOCKWISE == orient)
         ret.reverse_orientation();
@@ -188,7 +179,6 @@ string RequestHandler::handle_find_path(std::string req)
 
 
     vector<Point_2> sites;
-    //todo check below
     sites.push_back(Point_2(start_pos.at(0), start_pos.at(1)));
 
     vector<double> sites_vec = split_into_doubles(req_params.at(1), ' ');
@@ -197,7 +187,6 @@ string RequestHandler::handle_find_path(std::string req)
         sites.push_back(Point_2(sites_vec.at(2*i), sites_vec.at(2*i+1)));
     }
 
-    //cout << path2str(sites) << endl;
     vector<Polygon_2> drones;
     vector<double> temp_obs_drones;
     if(req_params.size()>=3)
@@ -209,24 +198,12 @@ string RequestHandler::handle_find_path(std::string req)
         }
 
     }
-    /*
-    vector<double> temp_obs_drones = split_into_doubles(req_params.at(2), ' ');
-    cout << "here3" << endl;
-    for (int i = 0; i < temp_obs_drones.size() / 2; i++)
-    {
-        drones.push_back(position_to_square(temp_obs_drones.at(2 * i), temp_obs_drones.at(2 * i + 1)));
-    }
-     */
-
-    //print_obs(drones);
 
     vector<Polygon_2> obs(drones);
     for(auto bound: bounding_box)
     {
         obs.push_back(bound);
     }
-
-    //vector<Point_2> path = plan_path(sites, robot, drones);
 
     vector<Point_2> path = plan_path(sites, robot, obs);
 
@@ -242,17 +219,13 @@ string RequestHandler::handle_find_ski_path(std::string req)
     Polygon_2 robot = position_to_square(start_pos.at(0), start_pos.at(1));
 
     vector<Point_2> gates;
-    //todo check below
-    //gates.push_back(Point_2(start_pos.at(0), start_pos.at(1)));
 
     vector<double> sites_vec = split_into_doubles(req_params.at(1), ' ');
     for (int i = 0; i < sites_vec.size() / 2; i++)
     {
         gates.push_back(Point_2(sites_vec.at(2*i), sites_vec.at(2*i+1)));
     }
-    //todo bounding box?
 
-    //todo the 1 constant/ 3*drone_size should be replaced (with what?)
     vector<Point_2> path = plan_ski_path(gates, robot, 3*drone_size, Point_2(start_pos.at(0), start_pos.at(1)));
 
     cout << "path is:" << path2str(path) << endl;
@@ -263,7 +236,7 @@ string RequestHandler::handle_find_ski_path(std::string req)
 string RequestHandler::handle(std::string req)
 {
     std::string delimiter = "$";
-    size_t pos = req.find(delimiter); //todo if delimiter is not found
+    size_t pos = req.find(delimiter); 
     std::string req_type = req.substr(0, pos);
 
     if(req_type == "set_world")
@@ -291,10 +264,8 @@ string RequestHandler::handle(std::string req)
     }
     else
     {
-        //cout << "*";
         cout << "not good" << endl;
         return "";
-        //todo illegal request
     }
 }
 
